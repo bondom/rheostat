@@ -6,6 +6,7 @@ import { withStyles, withStylesPropTypes } from 'react-with-styles';
 
 import Rheostat from '../src/Slider';
 import log10 from '../src/algorithms/log10';
+import positionAdjustingAlgorithm from '../src/algorithms/positionAdjustingAlgorithm';
 
 export default class LabeledSlider extends React.Component {
   constructor(props) {
@@ -38,6 +39,7 @@ export default class LabeledSlider extends React.Component {
       >
         <Rheostat
           {...passProps}
+          algorithm={positionAdjustingAlgorithm}
           onValuesUpdated={this.updateValue}
           values={values}
         />

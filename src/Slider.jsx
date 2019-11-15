@@ -184,15 +184,39 @@ class Rheostat extends React.Component {
     this.setHandleContainerNode = this.setHandleContainerNode.bind(this);
     this.positionPercent = this.positionPercent.bind(this);
     this.invalidatePitStyleCache = this.invalidatePitStyleCache.bind(this);
+    this.getAdjustedAlgorithmParams = this.getAdjustedAlgorithmParams.bind(this);
 
     this.pitStyleCache = {};
   }
 
+  getAdjustedAlgorithmParams(idx) {
+    const { handleDimensions } = this.state;
+    const sliderBox = this.getSliderBoundingBox();
+
+    const handlePercentage = this.props.orientation === VERTICAL
+      ? ((handleDimensions / sliderBox.height) * PERCENT_FULL) / 2
+      : ((handleDimensions / sliderBox.width) * PERCENT_FULL) / 2;
+
+
+    return {
+      idx,
+      plural: this.state.values.length === 2,
+      handlePercentage,
+    }
+  }
+
   componentDidMount() {
     // Note: This occurs in a timeout because styles need to be applied first
+    const { algorithm, min, max } = this.props;
+
     this.handleDimensionsTimeout = setTimeout(() => {
       this.handleDimensionsTimeout = null;
-      this.setState({ handleDimensions: this.getHandleDimensions() });
+      this.setState({ 
+        handleDimensions: this.getHandleDimensions(),
+        handlePos: this.state.values.map((value, idx) => {
+          return algorithm.getPosition(value, min, max, this.getAdjustedAlgorithmParams(idx));
+        }),
+      });
     }, 0);
   }
 
@@ -424,7 +448,7 @@ class Rheostat extends React.Component {
 
     return {
       handlePos: nextHandlePos,
-      values: nextHandlePos.map((pos) => algorithm.getValue(pos, min, max)),
+      values: nextHandlePos.map((pos, idx) => algorithm.getValue(pos, min, max, this.getAdjustedAlgorithmParams(idx))),
     };
   }
 
@@ -746,7 +770,7 @@ class Rheostat extends React.Component {
 
     const nextValues = this.validateValues(values, nextProps);
     this.setState({
-      handlePos: nextValues.map((value) => algorithm.getPosition(value, min, max)),
+      handlePos: nextValues.map((value, idx) => algorithm.getPosition(value, min, max, this.getAdjustedAlgorithmParams(idx))),
       values: nextValues,
     });
   }

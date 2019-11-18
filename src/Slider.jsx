@@ -189,34 +189,18 @@ class Rheostat extends React.Component {
     this.pitStyleCache = {};
   }
 
-  getAdjustedAlgorithmParams(idx) {
-    const { handleDimensions } = this.state;
-    const sliderBox = this.getSliderBoundingBox();
-
-    const handlePercentage = this.props.orientation === VERTICAL
-      ? ((handleDimensions / sliderBox.height) * PERCENT_FULL) / 2
-      : ((handleDimensions / sliderBox.width) * PERCENT_FULL) / 2;
-
-
-    return {
-      idx,
-      plural: this.state.values.length === 2,
-      handlePercentage,
-    }
-  }
-
   componentDidMount() {
     // Note: This occurs in a timeout because styles need to be applied first
     const { algorithm, min, max } = this.props;
 
     this.handleDimensionsTimeout = setTimeout(() => {
       this.handleDimensionsTimeout = null;
-      this.setState({ 
+      this.setState((prevState) => ({
         handleDimensions: this.getHandleDimensions(),
-        handlePos: this.state.values.map((value, idx) => {
-          return algorithm.getPosition(value, min, max, this.getAdjustedAlgorithmParams(idx));
-        }),
-      });
+        handlePos: prevState.values.map(
+          (value, idx) => algorithm.getPosition(value, min, max, this.getAdjustedAlgorithmParams(idx)),
+        ),
+      }));
     }, 0);
   }
 
@@ -266,6 +250,22 @@ class Rheostat extends React.Component {
       clearTimeout(this.handleDimensionsTimeout);
       this.handleDimensionsTimeout = null;
     }
+  }
+
+  getAdjustedAlgorithmParams(idx) {
+    const handleDimensions = this.getHandleDimensions();
+    const sliderBox = this.getSliderBoundingBox();
+
+    const handlePercentage = this.props.orientation === VERTICAL
+      ? ((handleDimensions / sliderBox.height) * PERCENT_FULL) / 2
+      : ((handleDimensions / sliderBox.width) * PERCENT_FULL) / 2;
+
+
+    return {
+      idx,
+      plural: this.state.values.length === 2,
+      handlePercentage,
+    };
   }
 
   getPublicState() {
